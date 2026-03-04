@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'docker-agent' }
+    agent any
 
     parameters {
         choice(name: 'ENV', choices: ['dev', 'stage', 'prod'], description: 'Куда выполнять deploy')
@@ -7,17 +7,12 @@ pipeline {
     }
 
     stages {
+
         stage('Build') {
             steps {
                 dir('second_lesson') {
-                    sh 'echo "=== DEBUG ==="'
-                    sh 'whoami'
-                    sh 'pwd'
-                    sh 'ls -la'
-
                     sh 'python3 --version'
-                    sh 'python3 -m pip --version'
-                    sh 'python3 -m pip install -r requirements.txt'
+                    sh 'python3 -m pip install --break-system-packages -r requirements.txt'
                 }
             }
         }
@@ -25,17 +20,14 @@ pipeline {
         stage('Test') {
             steps {
                 dir('second_lesson') {
-                    sh 'python3 -m pytest -q tests'
+                    sh 'pytest test_app.py'
                 }
             }
         }
 
         stage('Deploy') {
             when {
-                allOf {
-                    branch 'master'
-                    expression { params.DO_DEPLOY }
-                }
+                expression { params.DO_DEPLOY }
             }
             steps {
                 dir('second_lesson') {
