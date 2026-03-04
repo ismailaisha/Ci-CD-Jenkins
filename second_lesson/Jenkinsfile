@@ -1,0 +1,56 @@
+pipeline {
+    agent { label 'docker-agent' }
+
+    parameters {
+        choice(name: 'ENV', choices: ['dev', 'stage', 'prod'], description: 'Куда выполнять deploy')
+        booleanParam(name: 'DO_DEPLOY', defaultValue: false, description: 'Выполнять Deploy stage?')
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                dir('second_lesson') {
+                    sh 'python3 --version'
+                    sh 'pip --version'
+                    sh 'pip install -r requirements.txt'
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                dir('second_lesson') {
+                    sh 'pytest -q tests'
+                }
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                allOf {
+                    branch 'master'
+                    expression { return params.DO_DEPLOY }
+                }
+            }
+            steps {
+                dir('second_lesson') {
+                    sh 'mkdir -p deploy'
+                    sh 'echo "deployed to ${ENV} at $(date)" > deploy/deploy_${ENV}.txt'
+                    sh 'ls -la deploy'
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline finished SUCCESS'
+        }
+        failure {
+            echo 'Pipeline finished FAILURE'
+        }
+        always {
+            echo "Branch: ${env.BRANCH_NAME}, ENV: ${params.ENV}, DO_DEPLOY: ${params.DO_DEPLOY}"
+        }
+    }
+}
