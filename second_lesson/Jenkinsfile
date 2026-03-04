@@ -7,11 +7,11 @@ pipeline {
     }
 
     stages {
-
         stage('Build') {
             steps {
                 dir('second_lesson') {
                     sh 'python3 --version'
+                    sh 'python3 -m pip --version'
                     sh 'python3 -m pip install --break-system-packages -r requirements.txt'
                 }
             }
@@ -20,14 +20,17 @@ pipeline {
         stage('Test') {
             steps {
                 dir('second_lesson') {
-                    sh 'pytest test_app.py'
+                    sh 'python3 -m pytest -q tests'
                 }
             }
         }
 
         stage('Deploy') {
             when {
-                expression { params.DO_DEPLOY }
+                allOf {
+                    branch 'master'
+                    expression { params.DO_DEPLOY }
+                }
             }
             steps {
                 dir('second_lesson') {
@@ -40,14 +43,14 @@ pipeline {
     }
 
     post {
+        always {
+            echo "ENV: ${params.ENV}, DO_DEPLOY: ${params.DO_DEPLOY}"
+        }
         success {
             echo 'Pipeline finished SUCCESS'
         }
         failure {
             echo 'Pipeline finished FAILURE'
-        }
-        always {
-            echo "ENV: ${params.ENV}, DO_DEPLOY: ${params.DO_DEPLOY}"
         }
     }
 }
