@@ -10,9 +10,14 @@ pipeline {
         stage('Build') {
             steps {
                 dir('second_lesson') {
+                    sh 'echo "=== DEBUG ==="'
+                    sh 'whoami'
+                    sh 'pwd'
+                    sh 'ls -la'
+
                     sh 'python3 --version'
-                    sh 'pip --version'
-                    sh 'pip install -r requirements.txt'
+                    sh 'python3 -m pip --version'
+                    sh 'python3 -m pip install -r requirements.txt'
                 }
             }
         }
@@ -20,7 +25,7 @@ pipeline {
         stage('Test') {
             steps {
                 dir('second_lesson') {
-                    sh 'pytest -q tests'
+                    sh 'python3 -m pytest -q tests'
                 }
             }
         }
@@ -29,7 +34,7 @@ pipeline {
             when {
                 allOf {
                     branch 'master'
-                    expression { return params.DO_DEPLOY }
+                    expression { params.DO_DEPLOY }
                 }
             }
             steps {
@@ -50,7 +55,7 @@ pipeline {
             echo 'Pipeline finished FAILURE'
         }
         always {
-            echo "Branch: ${env.BRANCH_NAME}, ENV: ${params.ENV}, DO_DEPLOY: ${params.DO_DEPLOY}"
+            echo "ENV: ${params.ENV}, DO_DEPLOY: ${params.DO_DEPLOY}"
         }
     }
 }
