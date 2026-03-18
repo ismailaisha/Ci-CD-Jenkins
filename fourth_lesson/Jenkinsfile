@@ -1,10 +1,15 @@
 pipeline {
-     agent { label 'agent1' }
+    agent { label 'agent1' }
 
     stages {
         stage('Install dependencies') {
             steps {
-                sh 'pip install -r requirements.txt'
+                sh '''
+                    python3 -m venv .venv
+                    . .venv/bin/activate
+                    pip install -r requirements.txt
+                    pip install pytest
+                '''
             }
         }
 
@@ -12,13 +17,19 @@ pipeline {
             parallel {
                 stage('Run tests') {
                     steps {
-                        sh 'pytest'
+                        sh '''
+                            . .venv/bin/activate
+                            pytest
+                        '''
                     }
                 }
 
                 stage('Run app check') {
                     steps {
-                        sh 'python3 app.py "hello jenkins"'
+                        sh '''
+                            . .venv/bin/activate
+                            python app.py "hello_jenkins"
+                        '''
                     }
                 }
             }
