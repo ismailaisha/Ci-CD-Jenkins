@@ -4,12 +4,13 @@ pipeline {
     stages {
         stage('Install dependencies') {
             steps {
-                sh '''
-                    python3 -m venv .venv
-                    . .venv/bin/activate
-                    pip install -r requirements.txt
-                    pip install pytest
-                '''
+                dir('fourth_lesson') {
+                    sh '''
+                        python3 -m venv .venv
+                        . .venv/bin/activate
+                        pip install -r requirements.txt
+                    '''
+                }
             }
         }
 
@@ -17,19 +18,23 @@ pipeline {
             parallel {
                 stage('Run tests') {
                     steps {
-                        sh '''
-                            . .venv/bin/activate
-                            pytest
-                        '''
+                        dir('fourth_lesson') {
+                            sh '''
+                                . .venv/bin/activate
+                                pytest tests/
+                            '''
+                        }
                     }
                 }
 
                 stage('Run app check') {
                     steps {
-                        sh '''
-                            . .venv/bin/activate
-                            python app.py "hello_jenkins"
-                        '''
+                        dir('fourth_lesson') {
+                            sh '''
+                                . .venv/bin/activate
+                                python app.py "hello_jenkins"
+                            '''
+                        }
                     }
                 }
             }
@@ -37,7 +42,9 @@ pipeline {
 
         stage('Build Docker image') {
             steps {
-                sh 'docker build -t text-analyzer .'
+                dir('fourth_lesson') {
+                    sh 'docker build -t text-analyzer .'
+                }
             }
         }
 
